@@ -1,0 +1,48 @@
+-- ============================================================
+-- DROP (ordem importa: filho antes do pai)
+-- ============================================================
+IF OBJECT_ID('dbo.NotificacaoUsuario', 'U') IS NOT NULL
+    DROP TABLE dbo.NotificacaoUsuario;
+
+IF OBJECT_ID('dbo.Notificacao', 'U') IS NOT NULL
+    DROP TABLE dbo.Notificacao;
+
+-- ============================================================
+-- Notificacao
+-- ============================================================
+CREATE TABLE dbo.Notificacao
+(
+    Id          INT             NOT NULL IDENTITY(1,1),
+    Titulo      NVARCHAR(200)   NOT NULL,
+    Descricao   NVARCHAR(1000)  NOT NULL,
+    Tipo        NVARCHAR(20)    NOT NULL CONSTRAINT DF_Notificacao_Tipo     DEFAULT 'informacao',
+    Escopo      NVARCHAR(20)    NOT NULL CONSTRAINT DF_Notificacao_Escopo   DEFAULT 'Individual',
+    CriadaEm   DATETIME2       NOT NULL CONSTRAINT DF_Notificacao_CriadaEm DEFAULT SYSUTCDATETIME(),
+    ExpiraEm    DATETIME2       NOT NULL,
+    Modulo      NVARCHAR(50)    NULL,
+    EntidadeId  NVARCHAR(50)    NULL,
+
+    CONSTRAINT PK_Notificacao PRIMARY KEY (Id)
+);
+
+-- ============================================================
+-- NotificacaoUsuario
+-- ============================================================
+CREATE TABLE dbo.NotificacaoUsuario
+(
+    Id              INT           NOT NULL IDENTITY(1,1),
+    NotificacaoId   INT           NOT NULL,
+    UsuarioId       NVARCHAR(100) NOT NULL,
+    Lida            BIT           NOT NULL CONSTRAINT DF_NotificacaoUsuario_Lida            DEFAULT 0,
+    LidaEm          DATETIME2     NULL,
+    EntregueViaHub  BIT           NOT NULL CONSTRAINT DF_NotificacaoUsuario_EntregueViaHub  DEFAULT 0,
+
+    CONSTRAINT PK_NotificacaoUsuario PRIMARY KEY (Id),
+
+    CONSTRAINT FK_NotificacaoUsuario_Notificacao
+        FOREIGN KEY (NotificacaoId) REFERENCES dbo.Notificacao(Id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT UQ_NotificacaoUsuario_NotifUsuario
+        UNIQUE (NotificacaoId, UsuarioId)
+);
